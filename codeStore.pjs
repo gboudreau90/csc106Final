@@ -1,6 +1,10 @@
-
-
-var currentScene = 0;
+//to create splash screen... 12/12/22
+var score = 0;
+var speedScore = (random(1, 5));
+var currentScene = 1;
+//tracks position
+var position = 0;
+var stillPlaying = false;
 
 //previous bitmoji
 var drawBitmojiHead = function (bitmojiX, bitmojiY, bitmojiHeight)
@@ -112,11 +116,185 @@ var titleScene = function() {
     background(157, 232, 65);
     fill(0, 0, 0);
     textSize(45);
-    text("Space Ship Fight", 27, 56);
+    text("Fruit Collecter 1", 43, 20);
     textSize(28);
     text("By Greyson Boudreau", 62, 365);
     drawBitmoji(200,106,144,80);
     startBtn.draw();
 }; 
 
-titleScene();
+
+//bitmoji constructor
+var Bitmoji = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.car = 0;
+}; 
+
+//drawing bitmoji
+Bitmoji.prototype.draw = function() {
+    fill(255, 0, 0);
+    this.x = constrain(this.x, 16, height-16);
+    drawBitmoji(this.x, this.y, 50);
+//score
+}; 
+
+//bitmoji hop with space
+Bitmoji.prototype.hop = function() {
+    this.x -= 5;
+}; 
+
+//gives bitmoji gravity
+Bitmoji.prototype.fall = function() {
+    this.x += 5;
+}; 
+
+//checks if bitmoji is over the car
+Bitmoji.prototype.checkCollision = function(stick) {
+    if ((stick.x >= this.x - 100 && stick.x <= (this.x + 40)) &&
+        (stick.y >= this.y - 10 && stick.y <= (this.y + 40))) {
+        stick.y = -400;
+        score++;
+    }
+}; 
+
+//copied khan button
+var Button = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 0;
+    this.width = config.width || 150;
+    this.height = config.height || 50;
+    this.label = config.label || "Click";
+    this.onClick = config.onClick || function() {};
+};
+
+Button.prototype.draw = function() {
+    fill(255, 28, 28);
+    rect(this.x, this.y, this.width, this.height, 5);
+    fill(0, 0, 0);
+    textSize(18);
+    textAlign(LEFT, TOP);
+    text(this.label, this.x+10, this.y+this.height/4);
+};
+
+Button.prototype.isMouseInside = function() {
+    return mouseX > this.x &&
+           mouseX < (this.x + this.width) &&
+           mouseY > this.y &&
+           mouseY < (this.y + this.height);
+};
+
+Button.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClick();
+    }
+};
+
+//creates start button
+var startBtn = new Button({
+    x: 133,
+    y: 267,
+    width: 127,
+    label: "Click to Start",
+    onClick: function() {
+        currentScene = 2;
+        stillPlaying = true;
+    }
+});
+
+//when button clicked change scene
+mouseClicked = function() {
+    startBtn.handleMouseClick();
+}; 
+
+
+//car constructor
+var Car = function(x, y, speedScore) {
+    this.x = x;
+    this.y = y;
+    this.speed = speedScore;
+}; 
+
+//draw method for car
+Car.prototype.draw = function() {
+    noStroke();
+    fill(84, 14, 14);
+    rect(this.x, this.y+5, 41, 17); 
+    fill(24, 207, 217);
+    rect(this.x+31, this.y+7, 10, 5);
+    fill(0, 0, 0);
+    ellipse(this.x+10, this.y+20, 10, 10); 
+    ellipse(this.x+30, this.y+20, 10, 10);
+};
+
+//bitmoji created
+var bitmoji = new Bitmoji(10, 280); 
+
+//array to count 100 cars max
+var cars = [];
+
+//call random car position from array
+for (var i = 0; i < 100; i++) {
+    cars.push(new Car(352 - i*7, random(-34, -869)));
+}
+
+//scene for the game
+var gameScene = function() {
+    background(17, 171, 161);
+    fill(5, 56, 1);
+    rectMode(CORNER);
+    rect(0, height*0.90, width, height*0.10);
+    
+    //print score and speed of cars
+    fill(0, 0, 0);
+    textSize(18);
+    text("Score: " + score, 5, 0);
+    
+    //rounds speed number so its not a long decimal
+    text("Speed: " + Math.round(speedScore), 5, 20);
+    
+    //ends game after 250 cars
+    //counts cars
+    var numberCars = 0;
+    //use off screen count cars
+    if(stillPlaying) {
+        for(var i = 0; i < cars.length; i++){
+            if(cars[i].y > 400)
+            {cars[i].y = 0;}
+            {numberCars++;}
+        }  
+    }
+    
+    //use collision check
+    for (var i = 0; i < cars.length/2; i++) {
+        cars[i].draw();
+        bitmoji.checkCollision(cars[i]);
+        
+        //random constant car speed
+        cars[i].y += speedScore;
+        
+        //end game after 100 cars
+        if(numberCars >= 250) {
+            stillPlaying = false;
+        }
+    }
+    
+    //if key press rise if no key press fall
+    if (keyIsPressed && keyCode === 0) 
+        {bitmoji.hop();} 
+        
+        else {bitmoji.fall();}
+        
+    bitmoji.draw();
+}; 
+
+//begins scenes
+draw = function() {
+    if (currentScene === 1) { 
+    titleScene(); 
+    }
+    else if (currentScene === 2 && stillPlaying === true) {
+    gameScene();
+    }
+}; 
+

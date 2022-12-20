@@ -1,10 +1,18 @@
 //to create splash screen... 12/12/22
+//keep score
 var score = 0;
-var speedScore = (random(1, 5));
-var currentScene = 1;
+
+//stores speed values
+var speedScore = (random(1, 4));
+
+//determines which scene to play
+var currentScene = 2;
+
 //tracks position
 var position = 0;
-var stillPlaying = false;
+
+//determines game screen on/off
+var stillPlaying = true;
 
 //previous bitmoji
 var drawBitmojiHead = function (bitmojiX, bitmojiY, bitmojiHeight)
@@ -62,6 +70,39 @@ var drawBitmoji = function (bitmojiX, bitmojiY, bitmojiHeight)
     drawBitmojiHead(bitmojiX, bitmojiY, bitmojiHeight);
     drawBitmojiBody(bitmojiX, bitmojiY, bitmojiHeight);
 };
+//draw basket for catching
+var drawBasket = function (Bx,By,Bh) {   
+    fill(110, 6, 6);
+    quad(Bx+(Bh/200*205),By+(Bh/200*370),Bx+(Bh/200*259),By+(Bh/200*370),Bx+(Bh/200*275),By+(Bh/200*330),Bx+(Bh/200*185),By+(Bh/200*330));
+    stroke(0, 0, 0);
+    strokeWeight(1);
+    line(Bx+(Bh/200*256),By+(Bh/200*369),Bx+(Bh/200*187),By+(Bh/200*331));
+    line(Bx+(Bh/200*202),By+(Bh/200*362),Bx+(Bh/200*202),By+(Bh/200*331));
+    line(Bx+(Bh/200*210),By+(Bh/200*369),Bx+(Bh/200*210),By+(Bh/200*331));
+    line(Bx+(Bh/200*218),By+(Bh/200*369),Bx+(Bh/200*218),By+(Bh/200*331));
+    line(Bx+(Bh/200*226),By+(Bh/200*369),Bx+(Bh/200*226),By+(Bh/200*331));
+    line(Bx+(Bh/200*234),By+(Bh/200*369),Bx+(Bh/200*234),By+(Bh/200*331));
+    line(Bx+(Bh/200*242),By+(Bh/200*369),Bx+(Bh/200*242),By+(Bh/200*331));
+    line(Bx+(Bh/200*250),By+(Bh/200*369),Bx+(Bh/200*250),By+(Bh/200*331));
+    line(Bx+(Bh/200*257),By+(Bh/200*369),Bx+(Bh/200*257),By+(Bh/200*331));
+    line(Bx+(Bh/200*205),By+(Bh/200*369),Bx+(Bh/200*274),By+(Bh/200*331));
+};
+
+//apple to call later
+var drawApples = function() {
+    fill(255, 0, 0);//apple
+    ellipse(213, 188, 27, 21);
+    stroke(78, 38, 0);
+    strokeWeight(3);
+    line(213, 184, 208, 175);
+    noStroke();
+    fill(39, 166, 21);
+    ellipse(215, 177, 5, 13);
+};
+
+//
+//BUTTONS
+//
 
 //copied khan button
 var Button = function(config) {
@@ -123,41 +164,6 @@ var titleScene = function() {
     startBtn.draw();
 }; 
 
-
-//bitmoji constructor
-var Bitmoji = function(x, y) {
-    this.x = x;
-    this.y = y;
-    this.car = 0;
-}; 
-
-//drawing bitmoji
-Bitmoji.prototype.draw = function() {
-    fill(255, 0, 0);
-    this.x = constrain(this.x, 16, height-16);
-    drawBitmoji(this.x, this.y, 50);
-//score
-}; 
-
-//bitmoji hop with space
-Bitmoji.prototype.hop = function() {
-    this.x -= 5;
-}; 
-
-//gives bitmoji gravity
-Bitmoji.prototype.fall = function() {
-    this.x += 5;
-}; 
-
-//checks if bitmoji is over the car
-Bitmoji.prototype.checkCollision = function(stick) {
-    if ((stick.x >= this.x - 100 && stick.x <= (this.x + 40)) &&
-        (stick.y >= this.y - 10 && stick.y <= (this.y + 40))) {
-        stick.y = -400;
-        score++;
-    }
-}; 
-
 //copied khan button
 var Button = function(config) {
     this.x = config.x || 0;
@@ -207,45 +213,90 @@ mouseClicked = function() {
     startBtn.handleMouseClick();
 }; 
 
+//
+//BASKET MOVEMENT/ OBJ PLACEMENT
+//
 
-//car constructor
-var Car = function(x, y, speedScore) {
+//basket constructor
+var Basket = function(config, x, y) {
+    this.x = config.x || 150;
+    this.y = config.y || 150;
+    this.apple = 0;
+}; 
+
+//drawing basket & constraining movement on X axis DONE
+Basket.prototype.draw = function() {
+    this.x = constrain(this.x, -108, height-164);     
+    fill(0, 0, 0);
+    drawBasket(this.x,this.y, 118);
+}; 
+
+//checks if basket is under apple DONE
+Basket.prototype.checkCollision = function(stick) {
+    if ((stick.x >= this.x && stick.x <= (this.x + 125)) &&
+        (stick.y >= this.y + 122 && stick.y <= (this.y + 132))) {
+        stick.y = -400;
+        score++;
+    }
+}; 
+
+//basket move right with space DONE
+Basket.prototype.hop = function() {
+    this.x -= 5;
+}; 
+
+//return basket to left side DONE
+Basket.prototype.fall = function() {
+    this.x += 5;
+}; 
+
+//
+//APPLE
+//
+
+//apple constructor
+var Apple = function(x, y, speedScore) {
     this.x = x;
     this.y = y;
     this.speed = speedScore;
 }; 
 
-//draw method for car
-Car.prototype.draw = function() {
+//draw method for fruit(apple)
+Apple.prototype.draw = function() {
     noStroke();
-    fill(84, 14, 14);
-    rect(this.x, this.y+5, 41, 17); 
-    fill(24, 207, 217);
-    rect(this.x+31, this.y+7, 10, 5);
-    fill(0, 0, 0);
-    ellipse(this.x+10, this.y+20, 10, 10); 
-    ellipse(this.x+30, this.y+20, 10, 10);
+    fill(255, 0, 0);//apple
+    ellipse(this.x+50, this.y+60, 27, 21);
+    stroke(78, 38, 0);
+    strokeWeight(3);
+    line(this.x+50, this.y+53, this.x+45, this.y+43);
+    noStroke();
+    fill(39, 166, 21);
+    ellipse(this.x+52, this.y+48, 5, 13);
 };
 
-//bitmoji created
-var bitmoji = new Bitmoji(10, 280); 
+//
+//GAME RULES
+//
 
-//array to count 100 cars max
-var cars = [];
+//basket created
+var basket = new Basket(0, 0);
 
-//call random car position from array
-for (var i = 0; i < 100; i++) {
-    cars.push(new Car(352 - i*7, random(-34, -869)));
+//array to call for random positions
+var apples = [];
+
+//call random apple position from array FIX!!!! ---FIXED [DONE] 12/18/22
+for (var i = 1; i < 86; i++) {
+    apples.push(new Apple(327 - i*7, random(-95, -1445)));
 }
 
 //scene for the game
 var gameScene = function() {
-    background(17, 171, 161);
+    background(212, 255, 252);
     fill(5, 56, 1);
     rectMode(CORNER);
     rect(0, height*0.90, width, height*0.10);
     
-    //print score and speed of cars
+    //print score and speed of apples
     fill(0, 0, 0);
     textSize(18);
     text("Score: " + score, 5, 0);
@@ -253,48 +304,67 @@ var gameScene = function() {
     //rounds speed number so its not a long decimal
     text("Speed: " + Math.round(speedScore), 5, 20);
     
-    //ends game after 250 cars
-    //counts cars
-    var numberCars = 0;
-    //use off screen count cars
+    //counts apples
+    var numberApples = 0;
+    //use off screen count apples
     if(stillPlaying) {
-        for(var i = 0; i < cars.length; i++){
-            if(cars[i].y > 400)
-            {cars[i].y = 0;}
-            {numberCars++;}
+        for(var i = 0; i < apples.length; i++){
+            if(apples[i].y > 400)
+            {apples[i].y = -86;}
+            {numberApples++;}
         }  
     }
     
-    //use collision check
-    for (var i = 0; i < cars.length/2; i++) {
-        cars[i].draw();
-        bitmoji.checkCollision(cars[i]);
+    //call check for collisions
+    for (var i = 0; i < apples.length/2; i++) {
+        apples[i].draw();
+        basket.checkCollision(apples[i]);
         
-        //random constant car speed
-        cars[i].y += speedScore;
+        //random constant apples speed
+        apples[i].y += speedScore;
         
-        //end game after 100 cars
-        if(numberCars >= 250) {
+        //end game after >100 score
+        if(score >= 101) {
             stillPlaying = false;
+            //play end scene
+            currentScene = 3;
         }
     }
     
-    //if key press rise if no key press fall
+    //if key press move right if no key press default to left side of screen
     if (keyIsPressed && keyCode === 0) 
-        {bitmoji.hop();} 
+        {basket.fall();
+        } else {basket.hop();
+    }
         
-        else {bitmoji.fall();}
-        
-    bitmoji.draw();
+    basket.draw();
 }; 
 
-//begins scenes
+//end scene after score of 100 reached
+var endScene = function() {
+    currentScene = 3;
+    fill(0, 0, 0);
+    background(157, 232, 65);
+    textSize(45);
+    text("Good Job!", 95, 95);
+    textSize(25);
+    text("You Win", 157, 141);
+    textSize(28);
+    text("Press >Restart< to Play Again!", 8, 296);
+    drawApples();
+    drawBasket(4,-98,174);
+};
+
+//Changes scenes via checking stillPlaying/ currentScene
 draw = function() {
     if (currentScene === 1) { 
     titleScene(); 
     }
     else if (currentScene === 2 && stillPlaying === true) {
     gameScene();
+    }
+    else if (currentScene === 3 && stillPlaying === false) {
+    endScene();
     }
 }; 
 
